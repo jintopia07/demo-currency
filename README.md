@@ -1,11 +1,5 @@
 # flutter_demo
 
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-![Description of Image](/lib/images/chart.png)
+<img src="/lib/images/chart.png" width="50%" />
 
 # demo-currency
