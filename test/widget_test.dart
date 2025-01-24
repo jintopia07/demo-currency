@@ -1,30 +1,49 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:flutter_demo/main.dart';
-
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('should display BTC price from mock data',
+      (WidgetTester tester) async {
+    // mock data
+    const mockResponse = '''
+    {
+      "bpi": {
+        "USD": {
+          "rate": "40,000"
+        }
+      }
+    }
+    ''';
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // ดึงข้อมูลจาก mockResponse
+    final price = fetchBitcoinPriceFromMock(mockResponse);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: FutureBuilder<String>(
+          future: price,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const CircularProgressIndicator();
+            } else if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            } else {
+              return Text('USD: ${snapshot.data}');
+            }
+          },
+        ),
+      ),
+    ));
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 5));
+
+    // ตรวจสอบผลลัพธ์ที่แสดงใน UI
+    expect(find.textContaining('USD: 40,000'), findsOneWidget);
   });
+}
+
+Future<String> fetchBitcoinPriceFromMock(String mockResponse) async {
+  final data = json.decode(mockResponse);
+  return data['bpi']['USD']['rate'];
 }
